@@ -3,12 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
-	"time"
 )
-
-func charLen(s string) int {
-	return len(s)
-}
 
 // this creates a slice
 func makeMenuRange(min, max int) []int {
@@ -107,57 +102,170 @@ func main() {
 		var input2 int
 		rChoices := makeMenuRange(1, len(reportMenu))
 		fmt.Println("Generate Report")
-		for j := range mainMenu {
-			fmt.Println(mainMenu[j])
+		for j := range reportMenu {
+			fmt.Println(reportMenu[j])
 		}
 		fmt.Scanln(&input2)
 		for !findChoiceInSlice(rChoices, input2) {
 			fmt.Println("Generate Report")
-			for j := range mainMenu {
-				fmt.Println(mainMenu[j])
+			for j := range reportMenu {
+				fmt.Println(reportMenu[j])
 			}
 			fmt.Scanln(&input2)
-			if input2 == 1 {
-				fmt.Println("Total cost by Category.")
-				categoryCost := make([]float64, 2, 3)
-				for _, value := range items {
-					for k := range Category {
-						if value.Category == k {
-							categoryCost[k] = categoryCost[k] + value.Unit_Cost
-						}
+		}
+		if input2 == 1 {
+			categoryCost := make([]float64, len(Category))
+			// cycle thru all the items...
+			for _, value := range items {
+				// and for each value.Category...
+				// check to see if it matches with on
+				for k := range Category {
+					if value.Category == k {
+						categoryCost[k] = categoryCost[k] + value.Unit_Cost
+						break // break out of k loop
 					}
 				}
-				for l := range Category {
-					fmt.Println(Category[l] + " cost : " + fmt.Sprintf("%g", categoryCost[l]))
-				}
-			} else if input2 == 2 {
-
-			} else {
-				break
 			}
+			for l := range Category {
+				fmt.Println(Category[l] + " cost : " + fmt.Sprintf("%g", categoryCost[l]))
+			}
+		} else if input2 == 2 {
+			// rpt by category list sorted
+			fmt.Println("List by Category")
+			for key, value := range items {
+				for k := range Category {
+					if value.Category == k {
+						fmt.Println(Category[value.Category] + ": " + key + " - Item: " + strconv.Itoa(value.Quantity) + " Unit Cost: " + fmt.Sprintf("%g", value.Unit_Cost))
+						break // break out of k loop
+					}
+				}
+			}
+		} else {
+			break
 		}
 	case 3:
-		fmt.Println("3. Add Items")
+		var input31, input32, input35 string
+		var input33 int
+		var input34 float64
+		fmt.Println("Name the item you wish to add...?")
+		fmt.Scanln(&input31)
+		fmt.Println("What category does it belong to?")
+		fmt.Scanln(&input32)
+		fmt.Println("How many units are there?")
+		fmt.Scanln(&input33)
+		fmt.Println("How much does it cost per unit?")
+		fmt.Scanln(&input34)
+		// first search if the item's category exists in the map
+
+		j, categoryFound := findCategory(Category, input32)
+		if !categoryFound && j == -1 {
+			fmt.Println("You item does not belong to any existing category...")
+			fmt.Println("Please create a new category for it and come back here to add your item.")
+			return
+		}
+		for key, value := range items {
+			if key == input31 {
+				value.Quantity = value.Quantity + input33
+				if value.Unit_Cost != input34 {
+					fmt.Println("The existing price is " + fmt.Sprintf("%g", value.Unit_Cost) + ", and different from your new price of " + fmt.Sprintf("%g", input34) + ".")
+					fmt.Println("Do you wish to change the price to the new one, y(es)/n(o)?")
+					fmt.Scanln(&input35)
+					if input35 == "y" {
+						fmt.Println("Noted, the item, " + key + " price is now changed to ...:" + fmt.Sprintf("%g", input34))
+						value.Unit_Cost = input34
+					} else if input35 == "n" {
+						fmt.Println("Noted, price is left unchanged.")
+					} else {
+						fmt.Println("I don't know what you mean. Exiting...")
+						break
+					}
+				} else {
+					value.Unit_Cost = value.Unit_Cost + input34
+				}
+			} else { // item is not in existing mapping, do add it in
+				items[input31] = item{j, input33, input34}
+			}
+		}
 	case 4:
-		fmt.Println("4. Modify Items")
+		fmt.Println("Modify Items.")
+		var input41, input42, input43, input44, input45 string
+		// var input45 float64
+		fmt.Println("Which item do you wish to modify?")
+		fmt.Scanln(&input41)
+		for key, value := range items {
+			if key == input41 {
+				fmt.Println("Current item name is " + key + " - Category is " + Category[value.Category] + " - Quantity is " + strconv.Itoa(value.Quantity) + " - Unit Cost " + fmt.Sprintf("%g", value.Unit_Cost))
+				fmt.Println("Enter new name. Enter for no change.")
+				fmt.Scanln(&input42)
+				if input42 != "" && input42 != key {
+					items[input42] = item{value.Category, value.Quantity, value.Unit_Cost}
+					delete(items, key)
+				}
+				fmt.Println("Enter new Category. Enter for no change.")
+				fmt.Scanln(&input43)
+				if input43 != "" {
+					j, categoryFound := findCategory(Category, input43)
+					if !categoryFound && j == -1 {
+						fmt.Println("You item does not belong to any existing category...")
+						fmt.Println("Please create a new category for it and come back here to add your item.")
+					} else {
+						items[key] = item{j, value.Quantity, value.Unit_Cost}
+					}
+				}
+
+				fmt.Println("Enter new Quantity. Enter for no change.")
+				fmt.Scanln(&input44)
+				qty, err := strconv.Atoi(input44)
+				for err != nil {
+					fmt.Println("Enter new Quantity. Enter for no change.")
+					fmt.Scanln(&input44)
+					qty, err = strconv.Atoi(input44)
+				}
+				items[key] = item{value.Category, qty, value.Unit_Cost}
+
+				fmt.Println("Enter new Unit cost. Enter for no change.")
+				fmt.Scanln(&input45)
+				cost, err := strconv.ParseFloat(input45, 64)
+				for err != nil {
+					fmt.Println("Enter new Unit cost. Enter for no change.")
+					fmt.Scanln(&input45)
+					cost, err = strconv.ParseFloat(input45, 64)
+				}
+				items[key] = item{value.Category, value.Quantity, cost}
+			}
+		}
 	case 5:
-		fmt.Println("5. Delete Item")
+		fmt.Println("Delete Items")
+		var input51 string
+		fmt.Println("Enter the item to delete")
+		fmt.Scanln(&input51)
+		_, found := items[input51]
+		if found {
+			delete(items, input51)
+			fmt.Println("Deleted" + input51)
+		} else {
+			fmt.Println("Item not found. Nothing to delete")
+		}
 	case 6:
-		fmt.Println("6. Print Current Data")
+		fmt.Println("Print Current Data.")
+		if len(items) != 0 {
+			for key, value := range items {
+				fmt.Println(key + " - {" + strconv.Itoa(value.Category) + " " + strconv.Itoa(value.Quantity) + " " + fmt.Sprintf("%g", value.Unit_Cost) + "}")
+			}
+		} else {
+			fmt.Println("No data found")
+		}
 	case 7:
 		var newCategory string
-		timeStarted := time.Now()
 		fmt.Println("Add New Category Name")
 		fmt.Println("What is the New Category Name to add?")
 		fmt.Scanln(&newCategory)
-		t := time.Now()
-		elapsed := t.Sub(timeStarted)
 		i, found := findCategory(Category, newCategory)
-		if !found && elapsed < 5 {
+		if !found {
 			//Append new category to Category
 			Category = append(Category, newCategory)
 			fmt.Println("New category: " + newCategory + " added at index " + strconv.Itoa(len(Category)))
-		} else if found && elapsed < 5 {
+		} else if found {
 			fmt.Println("Category: " + newCategory + " already exists at index " + strconv.Itoa(i))
 		} else {
 			fmt.Println("No input found")
