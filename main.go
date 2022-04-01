@@ -2,17 +2,9 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 )
-
-// this creates a slice
-func makeMenuRange(min, max int) []int {
-	a := make([]int, max-min+1)
-	for i := range a {
-		a[i] = min + i
-	}
-	return a
-}
 
 type item struct {
 	Category  int
@@ -20,6 +12,8 @@ type item struct {
 	Unit_Cost float64
 }
 
+// returns the index of needle in the slice haystack, and true
+// returns -1 and false if otherwise
 func findCategory(C []string, c string) (int, bool) {
 	for i := range C {
 		if C[i] == c {
@@ -27,52 +21,6 @@ func findCategory(C []string, c string) (int, bool) {
 		}
 	}
 	return -1, false
-}
-
-func validSelection(m []int, c int) bool {
-	for i := range m {
-		if m[i] == c {
-			return true
-		}
-	}
-	return false
-}
-
-var mainMenu = []string{
-	"1. View entire shopping list.",
-	"2. Generate Shopping List Report",
-	"3. Add Items",
-	"4. Modify Items",
-	"5. Delete Item",
-	"6. Print Current Data",
-	"7. Add New Category Name",
-	"0. Quit Program",
-}
-
-func displayMainMenu() {
-	fmt.Println("")
-	fmt.Println("")
-	fmt.Println("Shopping List Application")
-	fmt.Println("=========================")
-	for i := range mainMenu {
-		fmt.Println(mainMenu[i])
-	}
-	fmt.Println("Selete your choice:")
-}
-
-var reportMenu = []string{
-	"1. Total Cost of each category.",
-	"2. List of item by category.",
-	"3. Main Menu.",
-}
-
-func displayRptSubmenu() {
-	fmt.Println("")
-	fmt.Println("")
-	fmt.Println("Generate Report")
-	for j := range reportMenu {
-		fmt.Println(reportMenu[j])
-	}
 }
 
 var items map[string]item
@@ -89,9 +37,6 @@ func init() {
 }
 
 func main() {
-	//insert code here
-	// populating with some initial values
-
 	var input1 int
 	choices := makeMenuRange(1, len(mainMenu))
 	Category := []string{"Household", "Food", "Drinks"}
@@ -110,10 +55,7 @@ func main() {
 			for key, value := range items {
 				fmt.Println(Category[value.Category] + ": " + key + " - Item: " + strconv.Itoa(value.Quantity) + " Unit Cost: " + fmt.Sprintf("%g", value.Unit_Cost))
 			}
-			fmt.Println("")
-			fmt.Println("...pausing, press enter to continue...")
-			input1 = -1
-			fmt.Scanln()
+			pauseToRead(&input1)
 		case 2:
 			var input2 int
 			rChoices := makeMenuRange(1, len(reportMenu))
@@ -140,37 +82,27 @@ func main() {
 					for l := range Category {
 						fmt.Println(Category[l] + " cost : " + fmt.Sprintf("%g", categoryCost[l]))
 					}
-					fmt.Println("")
-					fmt.Println("Pausing... Press enter to continue.")
-					input2 = -1
-					fmt.Scanln()
+					pauseToRead(&input2)
 					displayRptSubmenu()
 					fmt.Scanln(&input2)
 				} else if input2 == 2 {
 					// rpt by category list sorted
 					fmt.Println("List by Category")
-					for key, value := range items {
-						for k := range Category {
+					sort.Strings(Category)
+					for k := range Category {
+						for key, value := range items {
 							if value.Category == k {
 								fmt.Println(Category[value.Category] + ": " + key + " - Item: " + strconv.Itoa(value.Quantity) + " Unit Cost: " + fmt.Sprintf("%g", value.Unit_Cost))
-								break // break out of k loop
 							}
 						}
 					}
-					fmt.Println("")
-					fmt.Println("Pausing... Press enter to continue.")
-					input2 = -1
-					fmt.Scanln()
+					pauseToRead(&input2)
 					displayRptSubmenu()
 					fmt.Scanln(&input2)
 				} else if input2 == 3 {
 					break
 				}
 			}
-			// fmt.Println("")
-			// fmt.Println("...pausing, press enter to continue...")
-			// input1 = -1
-			// fmt.Scanln()
 		case 3:
 			var input31, input32, input35 string
 			var input33 int
@@ -214,10 +146,7 @@ func main() {
 					items[input31] = item{j, input33, input34}
 				}
 			}
-			fmt.Println("")
-			fmt.Println("...pausing, press enter to continue...")
-			input1 = -1
-			fmt.Scanln()
+			pauseToRead(&input1)
 		case 4:
 			fmt.Println("Modify Items.")
 			var input41, input42, input43, input44, input45 string
@@ -266,10 +195,7 @@ func main() {
 					items[key] = item{value.Category, value.Quantity, cost}
 				}
 			}
-			fmt.Println("")
-			fmt.Println("...pausing, press enter to continue...")
-			input1 = -1
-			fmt.Scanln()
+			pauseToRead(&input1)
 		case 5:
 			fmt.Println("Delete Items")
 			var input51 string
@@ -282,9 +208,7 @@ func main() {
 			} else {
 				fmt.Println("Item not found. Nothing to delete")
 			}
-			fmt.Println("...pause, press enter to continue...")
-			input1 = -1
-			fmt.Scanln()
+			pauseToRead(&input1)
 		case 6:
 			fmt.Println("Print Current Data.")
 			if len(items) != 0 {
@@ -294,10 +218,7 @@ func main() {
 			} else {
 				fmt.Println("No data found")
 			}
-			fmt.Println("")
-			fmt.Println("...pausing, press enter to continue...")
-			input1 = -1
-			fmt.Scanln()
+			pauseToRead(&input1)
 		case 7:
 			var newCategory string
 			fmt.Println("Add New Category Name")
@@ -313,13 +234,13 @@ func main() {
 			} else {
 				fmt.Println("No input found")
 			}
-			fmt.Println("")
-			fmt.Println("...pausing, press enter to continue...")
-			input1 = -1
-			fmt.Scanln()
+			pauseToRead(&input1)
 		case 0:
 			fmt.Println("Quiting Program. Bye bye!")
 			return
+		default:
+			displayMainMenu()
+			fmt.Scanln(&input1)
 		}
 		displayMainMenu()
 		fmt.Scanln(&input1)
