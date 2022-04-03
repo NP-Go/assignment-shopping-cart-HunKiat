@@ -1,9 +1,10 @@
 package main
 
-// frontEnd.go is created for code orgainisation and ease of maintenance
 // This handles all the display menu and report
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // this creates a slice of integer
 // to be used with menu selection
@@ -15,7 +16,6 @@ func makeMenuRange(min, max int) []int {
 	return a
 }
 
-// returns true if integer exists in slice
 func validSelection(m []int, c int) bool {
 	for i := range m {
 		if m[i] == c {
@@ -62,9 +62,8 @@ func displayRptSubmenu() {
 	}
 }
 
-func pauseToRead(input *int) {
+func pauseToRead() {
 	fmt.Println("")
 	fmt.Println("Pausing... Press enter to continue.")
-	*input = -1
 	fmt.Scanln()
 }
