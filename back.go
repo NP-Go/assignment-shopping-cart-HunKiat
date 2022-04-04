@@ -24,11 +24,11 @@ func addItems(itemName, itemCategory string, quantity int, unit_cost float64) {
 	var input1 string
 	_, categoryFound := findCategory(Category, itemCategory)
 	if !categoryFound && itemCategory != "" {
-		fmt.Printf("\nCategory, %s does not exists. These are the existing categories...:\n", itemCategory)
+		fmt.Printf("\nCategory, [%s] does not exists. These are the existing categories...:\n", itemCategory)
 		for i := range Category {
-			fmt.Println(" - " + strconv.Itoa(i) + ". " + Category[i])
+			fmt.Printf("\n- [%s]", Category[i])
 		}
-		fmt.Println("Enter 'a' to add " + itemCategory + " in, or 'enter' to ignore this.")
+		fmt.Printf("\n\nEnter ->'a' to add [%s] in, or 'enter' to ignore this.", itemCategory)
 		fmt.Scanln(&input1)
 		if input1 == "a" {
 			_ = addNewCategory(itemCategory)
@@ -46,7 +46,7 @@ func addItems(itemName, itemCategory string, quantity int, unit_cost float64) {
 			if categoryFound {
 				items[itemName] = item{index, quantity, unit_cost}
 			} else {
-				// itemCategory is blank and item is new
+				// itemCategory is not found and item is new
 				fmt.Println("Unable to proceed... item is new, but category wasn't added earlier.")
 			}
 		} else {
@@ -56,20 +56,25 @@ func addItems(itemName, itemCategory string, quantity int, unit_cost float64) {
 	}
 }
 
-func modifyItem(itemToMod string) (itemNameUpdated, categoryUpdated, qtyUpdated, ucUpdated bool) {
+func modifyItem(itemToMod string) {
+	var notUpdated []string
 	var itemName, itemCategory, quantity, unit_cost string
 	value, _ := items[itemToMod]
 	fmt.Println("Current item name is " + itemToMod + " - Category is " + Category[value.Category] + " - Quantity is " + strconv.Itoa(value.Quantity) + " - Unit Cost " + fmt.Sprintf("%g", value.Unit_Cost))
 	fmt.Println("Enter new name. Enter for no change.")
 	fmt.Scanln(&itemName)
-	itemNameUpdated = updateItemName(itemToMod, itemName)
-	if itemNameUpdated {
+	if updateItemName(itemToMod, itemName) {
+		// need to swap the key or the references downstream will be 'misalligned'
 		itemToMod = itemName
+	} else {
+		notUpdated = append(notUpdated, "No changes to item name made.")
 	}
 
 	fmt.Println("Enter new Category. Enter for no change.")
 	fmt.Scanln(&itemCategory)
-	categoryUpdated = updateCategoryName(itemToMod, itemCategory)
+	if !updateCategoryName(itemToMod, itemCategory) {
+		notUpdated = append(notUpdated, "No changes to category made.")
+	}
 
 	fmt.Println("Enter new Quantity. Enter for no change.")
 	fmt.Scanln(&quantity)
@@ -80,7 +85,9 @@ func modifyItem(itemToMod string) (itemNameUpdated, categoryUpdated, qtyUpdated,
 			fmt.Scanln(&quantity)
 			qty, err = strconv.Atoi(quantity)
 		}
-		qtyUpdated = updateItemQty(itemToMod, qty)
+		if !updateItemQty(itemToMod, qty) {
+			notUpdated = append(notUpdated, "No changes to quantity made.")
+		}
 	}
 
 	fmt.Println("Enter new Unit cost. Enter for no change.")
@@ -92,11 +99,19 @@ func modifyItem(itemToMod string) (itemNameUpdated, categoryUpdated, qtyUpdated,
 			fmt.Scanln(&unit_cost)
 			cost, err = strconv.ParseFloat(unit_cost, 64)
 		}
-		ucUpdated = updateItemUnitCost(itemToMod, cost)
+		if !updateItemUnitCost(itemToMod, cost) {
+			notUpdated = append(notUpdated, "No changes to unit cost made.")
+		}
 	}
-	return itemNameUpdated, categoryUpdated, qtyUpdated, ucUpdated
+
+	// print parts that not updated as per assignment requirement
+	for _, val := range notUpdated {
+		fmt.Println(val)
+	}
 }
 
+// adds newCategory in Category slice only if it doesn't exists in Category
+// else return index if exists
 func addNewCategory(newCategory string) int {
 	i, found := findCategory(Category, newCategory)
 	if !found {
@@ -120,24 +135,13 @@ func isInt(s string) (int, bool) {
 	return intValue, true
 }
 
-// returns true if s is a string
-func isString(s string) (string, bool) {
-	s = strings.TrimSpace(s)
-	_, err := strconv.Atoi(s)
-	if err != nil {
-		return s, true
-	}
-	return "", false
-}
-
 // add Item Qty adds the new qty to the item's qty
 func addItemQty(itemName string, qty int) bool {
-	for key, value := range items {
-		if key == itemName {
-			value.Quantity = value.Quantity + qty
-			items[key] = item{value.Category, value.Quantity, value.Unit_Cost}
-			return true
-		}
+	value, ok := items[itemName]
+	if ok {
+		value.Quantity = value.Quantity + qty
+		items[itemName] = item{value.Category, value.Quantity, value.Unit_Cost}
+		return true
 	}
 	return false
 }

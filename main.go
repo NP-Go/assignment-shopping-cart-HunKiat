@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 )
 
 type item struct {
@@ -64,16 +63,11 @@ func main() {
 	case 4:
 		fmt.Println("Modify Items.")
 		var input41 string
-		var modItem, modCat, modQty, modUC bool
 		fmt.Println("Which item do you wish to modify?")
 		fmt.Scanln(&input41)
 		_, found := items[input41]
 		if found {
-			modItem, modCat, modQty, modUC = modifyItem(input41)
-			fmt.Println("Item Name is changed: " + strconv.FormatBool(modItem))
-			fmt.Println("Category is changed: " + strconv.FormatBool(modCat))
-			fmt.Println("Quantity is changed: " + strconv.FormatBool(modQty))
-			fmt.Println("Unit-cost is changed: " + strconv.FormatBool(modUC))
+			modifyItem(input41)
 		} else {
 			fmt.Println("Item is not found. Nothing to modify!")
 		}

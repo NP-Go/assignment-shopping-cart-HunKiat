@@ -7,10 +7,13 @@ import (
 	"strconv"
 )
 
+// for CateogryName, ItemName, Qty and UnitCost
+const printLineItem = "%s: %s - Item: %d Unit Cost: %g\n"
+
 func printShoppingList() {
 	fmt.Println("Shopping List Contents:")
 	for key, value := range items {
-		fmt.Println(Category[value.Category] + ": " + key + " - Item: " + strconv.Itoa(value.Quantity) + " Unit Cost: " + fmt.Sprintf("%g", value.Unit_Cost))
+		fmt.Printf(printLineItem, Category[value.Category], key, value.Quantity, value.Unit_Cost)
 	}
 }
 
@@ -43,17 +46,16 @@ func printShoppingRpts() {
 		for k := range Category {
 			for key, value := range items {
 				if value.Category == k {
-					fmt.Println(Category[value.Category] + ": " + key + " - Item: " + strconv.Itoa(value.Quantity) + " Unit Cost: " + fmt.Sprintf("%g", value.Unit_Cost))
+					fmt.Printf(printLineItem, Category[value.Category], key, value.Quantity, value.Unit_Cost)
 				}
 			}
 		}
 		pauseToRead()
 		printShoppingRpts()
 	} else if input2 == 3 {
-		fmt.Println("Returning back to Main Menu...")
-		pauseToRead()
+		// fmt.Println("Returning back to Main Menu...")
+		// pauseToRead()
 		return
-		// main()
 	}
 }
 
